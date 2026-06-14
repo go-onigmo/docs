@@ -661,11 +661,13 @@ byte-for-byte what Ruby produces.</p>
 also the regexp backend for <a href="https://github.com/go-embedded-ruby">go-embedded-ruby</a>,
 where a thin adapter maps Ruby's <code>Regexp</code>/<code>MatchData</code> onto this engine. The
 module path is <code>github.com/go-onigmo/regexp</code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Status: planning</p>
-<p>The engine is in the planning stage — there is no Go code yet. These pages
-describe the design from the implementation plan; the
-<a href="roadmap/">Roadmap</a> tracks the phases.</p>
+<div class="admonition success">
+<p class="admonition-title">Status: Phases 0 and 1 implemented</p>
+<p>The engine runs: a greedy backtracking VM with leftmost-first semantics —
+literals/escapes, <code>.</code>, character classes, anchors, greedy quantifiers,
+groups, alternation, <strong>named groups <code>(?&lt;name&gt;…)</code> and backreferences
+<code>\1</code> / <code>\k&lt;name&gt;</code></strong> — differential-tested against MRI, 100% coverage, CI
+green across 6 arches. The <a href="roadmap/">Roadmap</a> tracks the remaining phases.</p>
 </div>
 <h2 id="repositories">Repositories<a class="headerlink" href="#repositories" title="Permanent link">&para;</a></h2>
 <table>

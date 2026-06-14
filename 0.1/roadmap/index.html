@@ -541,8 +541,8 @@
 <h1 id="roadmap-phases">Roadmap (phases)<a class="headerlink" href="#roadmap-phases" title="Permanent link">&para;</a></h1>
 <p><code>go-onigmo/regexp</code> is grown <strong>test-first</strong>, one capability at a time, each phase
 differential-tested against Onigmo/MRI rather than built in isolation. There are
-six phases, 0 through 5. The engine is in the <strong>planning</strong> stage, so every phase
-below is <strong>Planned</strong>.</p>
+six phases, 0 through 5. Phase 0 and the named-group/backreference half of
+Phase 1 are implemented; the rest is planned.</p>
 <table>
 <thead>
 <tr>
@@ -557,13 +557,13 @@ below is <strong>Planned</strong>.</p>
 <td>0</td>
 <td>Scanner + parser + VM</td>
 <td>Scanner/parser for the common subset (literals, classes, <code>. * + ? {m,n}</code>, groups, alternation, anchors <code>^ $ \A \z</code>), compiler, and a minimal backtracking VM. Exit: anchored/greedy matching with captures matches MRI on a starter corpus.</td>
-<td>Planned</td>
+<td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>1</td>
 <td>Groups &amp; backreferences</td>
-<td>Named groups, non-greedy and possessive quantifiers, atomic groups, and backreferences.</td>
-<td>Planned</td>
+<td>Named groups <code>(?&lt;name&gt;…)</code> and backreferences <code>\1</code> / <code>\k&lt;name&gt;</code> <strong>done</strong>; non-greedy and possessive quantifiers and atomic groups pending.</td>
+<td><strong>Partial</strong></td>
 </tr>
 <tr>
 <td>2</td>
