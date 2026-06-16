@@ -488,18 +488,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#a-deterministic-timeout-and-step-budget" class="md-nav__link">
+  <a href="#a-deterministic-step-budget" class="md-nav__link">
     <span class="md-ellipsis">
-      A deterministic timeout and step budget
+      A deterministic step budget
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#optional-static-warnings" class="md-nav__link">
+  <a href="#a-wall-clock-timeout" class="md-nav__link">
     <span class="md-ellipsis">
-      Optional static warnings
+      A wall-clock timeout
     </span>
   </a>
   
@@ -650,18 +650,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#a-deterministic-timeout-and-step-budget" class="md-nav__link">
+  <a href="#a-deterministic-step-budget" class="md-nav__link">
     <span class="md-ellipsis">
-      A deterministic timeout and step budget
+      A deterministic step budget
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#optional-static-warnings" class="md-nav__link">
+  <a href="#a-wall-clock-timeout" class="md-nav__link">
     <span class="md-ellipsis">
-      Optional static warnings
+      A wall-clock timeout
     </span>
   </a>
   
@@ -720,19 +720,24 @@ captured text. A subpattern that contains a <a href="../vm/#how-backreferences-c
 cannot be memoized on position alone, because the same <code>(instruction, position)</code>
 can succeed or fail depending on what was captured; those regions fall back to
 the budget.</p>
-<h3 id="a-deterministic-timeout-and-step-budget">A deterministic timeout and step budget<a class="headerlink" href="#a-deterministic-timeout-and-step-budget" title="Permanent link">&para;</a></h3>
-<p>Independently of memoization, the VM carries a <strong>backtrack-step budget</strong> and a
-<strong>timeout</strong> (the equivalent of Ruby's <code>Regexp.timeout</code>). Each unit of
-backtracking work decrements the budget; when the budget or the deadline is
-exhausted, the match is <strong>aborted deterministically</strong> with an error rather than
-returning a wrong answer or running forever. "Deterministic" is the key word:
-the same pattern, input, and budget always abort at the same point, so behaviour
-is reproducible across runs and platforms — not dependent on wall-clock jitter.</p>
-<h3 id="optional-static-warnings">Optional static warnings<a class="headerlink" href="#optional-static-warnings" title="Permanent link">&para;</a></h3>
-<p>Some patterns are obviously catastrophic from their structure alone (nested
-unbounded quantifiers over overlapping alternations, for example). The engine can
-optionally flag these at compile time, so a developer is warned before the
-pattern ever sees hostile input.</p>
+<h3 id="a-deterministic-step-budget">A deterministic step budget<a class="headerlink" href="#a-deterministic-step-budget" title="Permanent link">&para;</a></h3>
+<p>Independently of memoization, the VM carries a <strong>backtrack-step budget</strong>. Each
+unit of backtracking work decrements it; when it is exhausted the match is
+<strong>aborted deterministically</strong> (<code>Match</code> returns <code>nil</code>) rather than returning a
+wrong answer or running forever. "Deterministic" is the key word: the same
+pattern, input, and budget always abort at the same point, so behaviour is
+reproducible across runs and platforms — not dependent on wall-clock jitter. A
+<strong>recursion-depth cap</strong> bounds subexpression calls (<code>\g&lt;…&gt;</code>) the same way, so a
+non-terminating recursive grammar fails locally instead of exhausting the stack.</p>
+<h3 id="a-wall-clock-timeout">A wall-clock timeout<a class="headerlink" href="#a-wall-clock-timeout" title="Permanent link">&para;</a></h3>
+<p><code>re.WithTimeout(d)</code> returns a <em>copy</em> of the <code>Regexp</code> that aborts any single match
+exceeding <code>d</code> of real time (Ruby's <code>Regexp.timeout</code> equivalent) — the real-time
+backstop to the deterministic step budget, for the residual cases (notably
+backreference-bearing patterns) memoization cannot prune. The receiver is left
+unchanged, so a shared <code>*Regexp</code> stays concurrency-safe. The VM polls the
+monotonic clock only once every 4096 steps, so a search with no deadline pays
+nothing. A pathological pattern is bounded by whichever of the budget or the
+deadline it reaches first.</p>
 <h2 id="never-rely-on-a-host-watchdog-alone">Never rely on a host watchdog alone<a class="headerlink" href="#never-rely-on-a-host-watchdog-alone" title="Permanent link">&para;</a></h2>
 <p>A common but fragile approach is to run the match on a goroutine and kill it from
 the outside. That is <strong>not</strong> sufficient here: a goroutine cannot be forcibly

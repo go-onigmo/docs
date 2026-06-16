@@ -668,28 +668,28 @@ packages mirroring the pipeline, plus the public API:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>syntax</code></td>
+<td><code>internal/syntax</code></td>
 <td>scanner + parser → AST; Onigmo grammar and escapes</td>
 </tr>
 <tr>
-<td><code>compile</code></td>
-<td>AST → VM program (instructions + capture/group metadata)</td>
+<td><code>internal/ast</code></td>
+<td>the typed AST node set the parser produces and the compiler consumes</td>
 </tr>
 <tr>
-<td><code>vm</code></td>
-<td>backtracking matcher: thread state, backtrack stack, memo, budget</td>
+<td><code>internal/compile</code></td>
+<td>AST → VM program (instructions + capture/group metadata), and the <code>Encoding</code>-keyed cursor (UTF-8 / ASCII-8BIT)</td>
 </tr>
 <tr>
-<td><code>charset</code></td>
-<td>character classes, POSIX classes, <code>\p{…}</code> Unicode properties</td>
+<td><code>internal/vm</code></td>
+<td>backtracking matcher: thread state, backtrack stack, memo, step/recursion budget, wall-clock timeout, and the start-position / interior-literal prefilters</td>
 </tr>
 <tr>
-<td><code>encoding</code></td>
-<td>byte/rune handling per encoding (UTF-8, ASCII-8BIT, …)</td>
+<td><code>internal/charset</code></td>
+<td><code>\p{…}</code> Unicode property classification</td>
 </tr>
 <tr>
 <td><code>regexp.go</code></td>
-<td>public API: <code>Compile</code>, <code>Match</code>, <code>MatchData</code>, named captures, replace</td>
+<td>public API: <code>Compile</code> / <code>CompileEnc</code>, <code>Match</code> / <code>MatchString</code>, <code>WithTimeout</code>, <code>Encoding</code>, and <code>MatchData</code> (spans by index and name)</td>
 </tr>
 </tbody>
 </table>

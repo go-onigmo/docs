@@ -492,6 +492,39 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Shape">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Matching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-a-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading a result
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -593,6 +626,39 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Shape">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Matching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-a-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reading a result
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -642,36 +708,62 @@ object surface (Phase 5) live downstream in the go-embedded-ruby adapter. See
 the <a href="../roadmap/">Roadmap</a>.</p>
 </div>
 <h2 id="shape">Shape<a class="headerlink" href="#shape" title="Permanent link">&para;</a></h2>
+<h3 id="compiling">Compiling<a class="headerlink" href="#compiling" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong><code>Compile(pattern string, opts Options) (*Regexp, error)</code></strong> — parse and
-  compile a pattern once; reuse the <code>*Regexp</code> for many matches.</li>
-<li><strong><code>(*Regexp).Match(input string) *MatchData</code></strong> — run the program against the
-  input; returns <code>*MatchData</code> on success or <code>nil</code> on no match.</li>
-<li><strong><code>MatchData</code></strong> — the result of a successful match: the whole-match span and
-  every group's span, by <strong>index and by name</strong>, plus pre-match and post-match
-  text. All spans are <strong>byte offsets</strong> into the input, so callers can map them
-  back onto their own string representation.<ul>
-<li><code>Group(name string) string</code> / group by index — captured text.</li>
-<li><code>Begin(i)</code> / <code>End(i)</code> — byte offsets of group <code>i</code>.</li>
+<li><strong><code>Compile(pattern string) (*Regexp, error)</code></strong> — parse and compile a pattern
+  once in the default UTF-8 encoding; reuse the <code>*Regexp</code> for many matches. A
+  <code>*Regexp</code> is immutable and safe for concurrent use.</li>
+<li><strong><code>CompileEnc(pattern string, enc Encoding) (*Regexp, error)</code></strong> — <code>Compile</code>
+  with an explicit input encoding. <code>Encoding</code> is <code>UTF8</code> (the default — the dot
+  and byte-oriented classes advance by a whole code point) or <code>ASCII8BIT</code>
+  (Ruby's binary <code>/n</code> — every atom advances one byte).</li>
+<li><strong><code>(*Regexp).WithTimeout(d time.Duration) *Regexp</code></strong> — return a <em>copy</em> that
+  aborts any single match exceeding <code>d</code> of wall-clock time (Ruby's
+  <code>Regexp.timeout</code> equivalent), the real-time backstop to the deterministic step
+  budget. The receiver is left unchanged, so a shared <code>*Regexp</code> stays
+  concurrency-safe. <code>(*Regexp).Timeout()</code> reads the limit back.</li>
+<li><strong><code>(*Regexp).Encoding() Encoding</code></strong> and <strong><code>(*Regexp).String() string</code></strong> —
+  report the input encoding (Ruby's <code>Regexp#encoding</code>) and the source pattern.</li>
 </ul>
-</li>
-<li><strong><code>(*Regexp).Replace(src, repl string) string</code></strong> — substitution with a
-  replacement DSL that understands <code>\1</code> (numbered) and <code>\k&lt;name&gt;</code> (named)
-  backreferences (and, later, <code>\&amp;</code> and block forms).</li>
+<h3 id="matching">Matching<a class="headerlink" href="#matching" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>(*Regexp).Match(s string) *MatchData</code></strong> — search for the leftmost match;
+  returns <code>*MatchData</code> on success or <code>nil</code> on no match (or when the step budget
+  or a configured timeout is exceeded).</li>
+<li><strong><code>(*Regexp).MatchString(s string) bool</code></strong> — report whether <code>s</code> matches.</li>
+</ul>
+<h3 id="reading-a-result">Reading a result<a class="headerlink" href="#reading-a-result" title="Permanent link">&para;</a></h3>
+<p><code>MatchData</code> holds the byte spans of the whole match (group 0) and of each
+capturing group, by <strong>index and by name</strong>. All offsets are <strong>byte offsets</strong> into
+the input, so callers can map them back onto their own string representation.</p>
+<ul>
+<li><code>Str(i int) string</code> / <code>StrName(name string) string</code> — captured text by index
+  or by name.</li>
+<li><code>Begin(i int) int</code> / <code>End(i int) int</code> — byte offsets of group <code>i</code> (<code>-1</code> if the
+  group did not participate).</li>
+<li><code>IndexOfName(name string) int</code> — the 1-based group index for a named capture
+  (<code>-1</code> if no group has that name).</li>
+<li><code>NGroups() int</code> — the number of capturing groups (not counting group 0).</li>
+<li><code>Pre() string</code> / <code>Post() string</code> — the input before and after the whole match.</li>
 </ul>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">re</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">onigmo</span><span class="p">.</span><span class="nx">Compile</span><span class="p">(</span><span class="s">`(?&lt;year&gt;\d{4})-(?&lt;mon&gt;\d{2})`</span><span class="p">,</span><span class="w"> </span><span class="nx">onigmo</span><span class="p">.</span><span class="nx">None</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">re</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">onigmo</span><span class="p">.</span><span class="nx">Compile</span><span class="p">(</span><span class="s">`(?&lt;year&gt;\d{4})-(?&lt;mon&gt;\d{2})`</span><span class="p">)</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nx">m</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">re</span><span class="p">.</span><span class="nx">Match</span><span class="p">(</span><span class="s">&quot;2026-06&quot;</span><span class="p">)</span><span class="w">          </span><span class="c1">// *MatchData or nil</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nx">m</span><span class="p">.</span><span class="nx">Group</span><span class="p">(</span><span class="s">&quot;year&quot;</span><span class="p">)</span><span class="w">                   </span><span class="c1">// &quot;2026&quot;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nx">m</span><span class="p">.</span><span class="nx">Begin</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">End</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">              </span><span class="c1">// byte offsets</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nx">re</span><span class="p">.</span><span class="nx">Replace</span><span class="p">(</span><span class="nx">src</span><span class="p">,</span><span class="w"> </span><span class="s">`\k&lt;mon&gt;/\k&lt;year&gt;`</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nx">m</span><span class="p">.</span><span class="nx">StrName</span><span class="p">(</span><span class="s">&quot;year&quot;</span><span class="p">)</span><span class="w">                 </span><span class="c1">// &quot;2026&quot;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nx">m</span><span class="p">.</span><span class="nx">Begin</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">End</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="w">              </span><span class="c1">// byte offsets of the whole match</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// An explicit encoding and a wall-clock timeout:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nx">bin</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">onigmo</span><span class="p">.</span><span class="nx">CompileEnc</span><span class="p">(</span><span class="s">`\xC3\xA9`</span><span class="p">,</span><span class="w"> </span><span class="nx">onigmo</span><span class="p">.</span><span class="nx">ASCII8BIT</span><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nx">safe</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">re</span><span class="p">.</span><span class="nx">WithTimeout</span><span class="p">(</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="relationship-to-ruby">Relationship to Ruby<a class="headerlink" href="#relationship-to-ruby" title="Permanent link">&para;</a></h2>
 <p>A thin adapter in <code>go-embedded-ruby/ruby/internal/regexp</code> maps Ruby's <code>Regexp</code>
 and <code>MatchData</code> objects onto this API. Because <code>MatchData</code> already reports byte
 offsets and exposes captures by both index and name, the adapter is a mechanical
 mapping rather than a reimplementation — the engine does the work, the adapter
-just presents it in Ruby's object shapes.</p>
+just presents it in Ruby's object shapes. The replacement DSL (<code>\1</code>, <code>\k&lt;name&gt;</code>,
+<code>\&amp;</code>, block forms) and the rest of the full Ruby <code>Regexp</code>/<code>MatchData</code> surface
+(Phase 5) live <strong>in that adapter, not in this engine module</strong>.</p>
 
 
 

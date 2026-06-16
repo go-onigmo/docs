@@ -739,11 +739,12 @@ Onigmo's grammar. The AST is what the <a href="../#packages">compiler</a> lowers
 bytecode, so the parser's job is to capture every construct Ruby's regexps can
 express — faithfully, including the cases RE2 omits.</p>
 <h2 id="scanner">Scanner<a class="headerlink" href="#scanner" title="Permanent link">&para;</a></h2>
-<p>The scanner reads the pattern as bytes under a declared encoding (UTF-8,
-ASCII-8BIT, …) and emits tokens for literals, metacharacters, escape sequences,
+<p>The scanner reads the pattern as bytes under a declared encoding (UTF-8 or
+ASCII-8BIT) and emits tokens for literals, metacharacters, escape sequences,
 group openers, quantifiers, and class brackets. Encoding matters here: a
 character class or a <code>\p{…}</code> property is interpreted in terms of the pattern's
-encoding, which the <a href="../#packages"><code>encoding</code></a> package abstracts.</p>
+encoding, which the <code>Encoding</code>-keyed cursor in the
+<a href="../#packages"><code>compile</code></a> package selects.</p>
 <h2 id="the-onigmo-grammar-surface">The Onigmo grammar surface<a class="headerlink" href="#the-onigmo-grammar-surface" title="Permanent link">&para;</a></h2>
 <p>The parser accepts the Onigmo construct set, which is considerably larger than
 RE2's. The main groups of syntax it must recognize:</p>
@@ -767,14 +768,21 @@ RE2's. The main groups of syntax it must recognize:</p>
 <li><strong>Greedy</strong>: <code>* + ? {m,n}</code> — match as much as possible, give back on failure.</li>
 <li><strong>Lazy</strong> (non-greedy): <code>*? +? ?? {m,n}?</code> — match as little as possible, take
   more on failure.</li>
-<li><strong>Possessive</strong>: <code>*+ ++ ?+ {m,n}+</code> — match greedily and <strong>never</strong> give back.</li>
+<li><strong>Possessive</strong>: <code>*+ ++ ?+</code> — match greedily and <strong>never</strong> give back. (A
+  trailing <code>+</code> on a <code>{m,n}</code> brace is <em>not</em> possessive but a stacked greedy repeat
+  <code>(a{m,n})+</code>, matching Onigmo.)</li>
 </ul>
 <h3 id="character-classes-and-properties">Character classes and properties<a class="headerlink" href="#character-classes-and-properties" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Bracketed classes <code>[...]</code> with ranges and negation <code>[^...]</code>.</li>
-<li>POSIX classes inside brackets: <code>[[:alpha:]]</code>, <code>[[:digit:]]</code>, …</li>
-<li>Unicode properties: <code>\p{L}</code>, <code>\p{Han}</code>, <code>\P{…}</code> — resolved by the
-  <a href="../#packages"><code>charset</code></a> package.</li>
+<li>POSIX classes inside brackets: <code>[[:alpha:]]</code>, <code>[[:digit:]]</code>, … (the 14
+  standard classes, positive and negated).</li>
+<li>Unicode properties: <code>\p{L}</code>, <code>\p{Nd}</code>, <code>\P{…}</code> — resolved by the
+  <a href="../#packages"><code>charset</code></a> package. A <strong>deliberate slice</strong> of the
+  general categories (<code>L N P S Z C</code>), the <code>Lu Ll Lt Lm Lo Nd</code> subcategories, and
+  the Onigmo POSIX-style aliases (<code>Alpha Alnum Digit Space Upper Lower Word</code>) is
+  supported; script and block names (<code>\p{Han}</code>, …) and the one-letter <code>\pL</code> form
+  are out of scope (see the <a href="../../roadmap/">Roadmap</a>).</li>
 </ul>
 <h3 id="flags">Flags<a class="headerlink" href="#flags" title="Permanent link">&para;</a></h3>
 <ul>
