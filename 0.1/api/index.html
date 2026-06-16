@@ -19,7 +19,7 @@
         <link rel="next" href="../roadmap/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../assets/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
     
     
@@ -98,8 +98,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="go-onigmo docs" class="md-header__button md-logo" aria-label="go-onigmo docs" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -243,8 +242,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="go-onigmo docs" class="md-nav__button md-logo" aria-label="go-onigmo docs" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     go-onigmo docs
@@ -635,10 +633,13 @@
 (<code>github.com/go-onigmo/regexp</code>). It is <strong>Ruby-shaped but Go-idiomatic</strong>: the
 concepts map onto Ruby's <code>Regexp</code>/<code>MatchData</code>, but the surface follows Go
 conventions (an explicit <code>error</code>, byte offsets, value types).</p>
-<div class="admonition note">
-<p class="admonition-title">Status: planned</p>
-<p>The shapes below are the planned API from the implementation plan. No Go code
-exists yet — see the <a href="../roadmap/">Roadmap</a>.</p>
+<div class="admonition success">
+<p class="admonition-title">Status: implemented</p>
+<p>The engine is built — the standalone roadmap (Phases 0–4) is complete and the
+module is importable as <code>github.com/go-onigmo/regexp</code>. The shapes below are the
+public surface; the replacement DSL and the full Ruby <code>Regexp</code>/<code>MatchData</code>
+object surface (Phase 5) live downstream in the go-embedded-ruby adapter. See
+the <a href="../roadmap/">Roadmap</a>.</p>
 </div>
 <h2 id="shape">Shape<a class="headerlink" href="#shape" title="Permanent link">&para;</a></h2>
 <ul>

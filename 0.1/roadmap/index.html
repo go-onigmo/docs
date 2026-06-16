@@ -19,7 +19,7 @@
         <link rel="next" href="../contributing/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../assets/logo.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
     
     
@@ -98,8 +98,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="go-onigmo docs" class="md-header__button md-logo" aria-label="go-onigmo docs" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -243,8 +242,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="go-onigmo docs" class="md-nav__button md-logo" aria-label="go-onigmo docs" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/logo.svg" alt="logo">
 
     </a>
     go-onigmo docs
@@ -471,6 +469,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Roadmap (phases)
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -480,6 +489,34 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documented-out-of-scope-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documented out-of-scope boundaries
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -525,6 +562,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documented-out-of-scope-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documented out-of-scope boundaries
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -541,8 +595,9 @@
 <h1 id="roadmap-phases">Roadmap (phases)<a class="headerlink" href="#roadmap-phases" title="Permanent link">&para;</a></h1>
 <p><code>go-onigmo/regexp</code> is grown <strong>test-first</strong>, one capability at a time, each phase
 differential-tested against Onigmo/MRI rather than built in isolation. There are
-six phases, 0 through 5. Phase 0 and the named-group/backreference half of
-Phase 1 are implemented; the rest is planned.</p>
+six phases, 0 through 5. <strong>The standalone engine roadmap (Phases 0–4) is
+complete</strong>; Phase 5 (the Ruby surface) is downstream in the go-embedded-ruby
+adapter that consumes this engine, not part of this module.</p>
 <table>
 <thead>
 <tr>
@@ -556,41 +611,61 @@ Phase 1 are implemented; the rest is planned.</p>
 <tr>
 <td>0</td>
 <td>Scanner + parser + VM</td>
-<td>Scanner/parser for the common subset (literals, classes, <code>. * + ? {m,n}</code>, groups, alternation, anchors <code>^ $ \A \z</code>), compiler, and a minimal backtracking VM. Exit: anchored/greedy matching with captures matches MRI on a starter corpus.</td>
+<td>Scanner/parser for the common subset (literals, classes, <code>. * + ? {m,n}</code>, groups, alternation, anchors <code>^ $ \A \z</code>), compiler, and a backtracking VM. Exit: anchored/greedy matching with captures matches MRI on a starter corpus.</td>
 <td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>1</td>
-<td>Groups &amp; backreferences</td>
-<td>Named groups <code>(?&lt;name&gt;…)</code> and backreferences <code>\1</code> / <code>\k&lt;name&gt;</code> <strong>done</strong>; non-greedy and possessive quantifiers and atomic groups pending.</td>
-<td><strong>Partial</strong></td>
+<td>Groups &amp; quantifier modes</td>
+<td>Named groups <code>(?&lt;name&gt;…)</code>, backreferences <code>\1</code> / <code>\k&lt;name&gt;</code>, and every quantifier mode — greedy, lazy <code>*? +? ?? {m,n}?</code>, possessive <code>*+ ++ ?+</code>, and atomic groups <code>(?&gt;…)</code>.</td>
+<td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>2</td>
 <td>Lookaround &amp; calls</td>
-<td>Lookahead/lookbehind, the <code>\G</code> anchor, and subexpression calls <code>\g&lt;…&gt;</code>.</td>
-<td>Planned</td>
+<td>Lookahead <code>(?=…)</code> <code>(?!…)</code>, fixed/bounded-width lookbehind <code>(?&lt;=…)</code> <code>(?&lt;!…)</code>, the <code>\G</code> anchor, and recursive subexpression calls <code>\g&lt;…&gt;</code> (<code>\g&lt;name&gt;</code> / <code>\g&lt;n&gt;</code> / <code>\g&lt;±n&gt;</code> / <code>\g&lt;0&gt;</code>).</td>
+<td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>3</td>
 <td>Unicode &amp; encodings</td>
-<td>Unicode properties <code>\p{…}</code>, POSIX classes, case-folding, and multi-encoding support.</td>
-<td>Planned</td>
+<td><code>\p{…}</code> Unicode properties, POSIX bracket classes <code>[[:alpha:]]</code>, <code>\h</code> / <code>\H</code>, <code>\R</code>, rune-level <code>/i</code> case folding, inline flags <code>(?imx)</code>, and UTF-8 / ASCII-8BIT multi-encoding with multibyte class members <code>[é]</code> / <code>[à-ï]</code>.</td>
+<td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>4</td>
 <td>ReDoS hardening &amp; optimizer</td>
-<td>Memoization plus a deterministic timeout/step budget; optimizer (first-byte sets, literal prefixes); benchmarks.</td>
-<td>Planned</td>
+<td><code>(pc, sp)</code> memoization, a deterministic step budget, a recursion-depth cap, and a wall-clock <code>WithTimeout</code>; a transparent start-position / required-interior-literal prefilter (up to ~210× faster); a benchmark suite.</td>
+<td><strong>Done</strong></td>
 </tr>
 <tr>
 <td>5</td>
 <td>Ruby surface</td>
-<td>The full Ruby <code>Regexp</code>/<code>MatchData</code> surface via the go-embedded-ruby adapter, and the replacement DSL (<code>\1</code>, <code>\k&lt;&gt;</code>, <code>\&amp;</code>, blocks).</td>
-<td>Planned</td>
+<td>The full Ruby <code>Regexp</code>/<code>MatchData</code> surface via the go-embedded-ruby adapter, and the replacement DSL (<code>\1</code>, <code>\k&lt;&gt;</code>, <code>\&amp;</code>, blocks). <strong>Downstream</strong> — lives in the adapter, not this module.</td>
+<td>Downstream</td>
 </tr>
 </tbody>
 </table>
+<h2 id="documented-out-of-scope-boundaries">Documented out-of-scope boundaries<a class="headerlink" href="#documented-out-of-scope-boundaries" title="Permanent link">&para;</a></h2>
+<p>These are <strong>deliberate</strong> divergences from MRI/Onigmo, recorded so the engine's
+surface is unambiguous:</p>
+<ul>
+<li><strong>Full/special case folding</strong> — only <em>simple (1:1)</em> folding is done; multi-char
+  expansions (<code>ß</code>→<code>ss</code>) and locale rules (Turkish dotless-ı/İ) are out of scope,
+  and backreference folding is ASCII-only.</li>
+<li><strong><code>\p{…}</code> is a deliberate slice</strong> of categories/aliases (<code>L N P S Z C</code>, the
+  <code>Lu Ll Lt Lm Lo Nd</code> subcategories, and <code>Alpha Alnum Digit Space Upper Lower
+  Word</code>); script and block names (<code>\p{Han}</code>, …) and the one-letter <code>\pL</code> form are
+  not accepted.</li>
+<li><strong>Encodings beyond UTF-8 / ASCII-8BIT</strong> (UTF-16/32, EUC-JP, Shift_JIS, …) are
+  out of scope; a caller transcodes legacy/wide text to UTF-8 at the boundary.</li>
+<li><strong>Match offsets are byte offsets</strong>, whereas MRI reports character offsets — the
+  two agree on matched <em>text</em> but not on the numeric span on multi-byte input.</li>
+<li><strong>Invalid UTF-8</strong> decodes leniently (replacement rune, width 1) rather than
+  raising as MRI does.</li>
+<li><strong>Variable-width lookbehind</strong> is rejected (a constant or bounded per-alternative
+  width is required), matching Onigmo.</li>
+</ul>
 <p>See the <a href="../architecture/">Architecture overview</a> for the pipeline these
 phases build out, and <a href="../architecture/redos/">ReDoS hardening</a> for the Phase 4
 threat model.</p>
