@@ -8,11 +8,12 @@ express — faithfully, including the cases RE2 omits.
 
 ## Scanner
 
-The scanner reads the pattern as bytes under a declared encoding (UTF-8,
-ASCII-8BIT, …) and emits tokens for literals, metacharacters, escape sequences,
+The scanner reads the pattern as bytes under a declared encoding (UTF-8 or
+ASCII-8BIT) and emits tokens for literals, metacharacters, escape sequences,
 group openers, quantifiers, and class brackets. Encoding matters here: a
 character class or a `\p{…}` property is interpreted in terms of the pattern's
-encoding, which the [`encoding`](index.md#packages) package abstracts.
+encoding, which the `Encoding`-keyed cursor in the
+[`compile`](index.md#packages) package selects.
 
 ## The Onigmo grammar surface
 
@@ -39,14 +40,21 @@ RE2's. The main groups of syntax it must recognize:
 - **Greedy**: `* + ? {m,n}` — match as much as possible, give back on failure.
 - **Lazy** (non-greedy): `*? +? ?? {m,n}?` — match as little as possible, take
   more on failure.
-- **Possessive**: `*+ ++ ?+ {m,n}+` — match greedily and **never** give back.
+- **Possessive**: `*+ ++ ?+` — match greedily and **never** give back. (A
+  trailing `+` on a `{m,n}` brace is *not* possessive but a stacked greedy repeat
+  `(a{m,n})+`, matching Onigmo.)
 
 ### Character classes and properties
 
 - Bracketed classes `[...]` with ranges and negation `[^...]`.
-- POSIX classes inside brackets: `[[:alpha:]]`, `[[:digit:]]`, …
-- Unicode properties: `\p{L}`, `\p{Han}`, `\P{…}` — resolved by the
-  [`charset`](index.md#packages) package.
+- POSIX classes inside brackets: `[[:alpha:]]`, `[[:digit:]]`, … (the 14
+  standard classes, positive and negated).
+- Unicode properties: `\p{L}`, `\p{Nd}`, `\P{…}` — resolved by the
+  [`charset`](index.md#packages) package. A **deliberate slice** of the
+  general categories (`L N P S Z C`), the `Lu Ll Lt Lm Lo Nd` subcategories, and
+  the Onigmo POSIX-style aliases (`Alpha Alnum Digit Space Upper Lower Word`) is
+  supported; script and block names (`\p{Han}`, …) and the one-letter `\pL` form
+  are out of scope (see the [Roadmap](../roadmap.md)).
 
 ### Flags
 

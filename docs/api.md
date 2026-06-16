@@ -14,28 +14,56 @@ conventions (an explicit `error`, byte offsets, value types).
 
 ## Shape
 
-- **`Compile(pattern string, opts Options) (*Regexp, error)`** — parse and
-  compile a pattern once; reuse the `*Regexp` for many matches.
-- **`(*Regexp).Match(input string) *MatchData`** — run the program against the
-  input; returns `*MatchData` on success or `nil` on no match.
-- **`MatchData`** — the result of a successful match: the whole-match span and
-  every group's span, by **index and by name**, plus pre-match and post-match
-  text. All spans are **byte offsets** into the input, so callers can map them
-  back onto their own string representation.
-    - `Group(name string) string` / group by index — captured text.
-    - `Begin(i)` / `End(i)` — byte offsets of group `i`.
-- **`(*Regexp).Replace(src, repl string) string`** — substitution with a
-  replacement DSL that understands `\1` (numbered) and `\k<name>` (named)
-  backreferences (and, later, `\&` and block forms).
+### Compiling
+
+- **`Compile(pattern string) (*Regexp, error)`** — parse and compile a pattern
+  once in the default UTF-8 encoding; reuse the `*Regexp` for many matches. A
+  `*Regexp` is immutable and safe for concurrent use.
+- **`CompileEnc(pattern string, enc Encoding) (*Regexp, error)`** — `Compile`
+  with an explicit input encoding. `Encoding` is `UTF8` (the default — the dot
+  and byte-oriented classes advance by a whole code point) or `ASCII8BIT`
+  (Ruby's binary `/n` — every atom advances one byte).
+- **`(*Regexp).WithTimeout(d time.Duration) *Regexp`** — return a *copy* that
+  aborts any single match exceeding `d` of wall-clock time (Ruby's
+  `Regexp.timeout` equivalent), the real-time backstop to the deterministic step
+  budget. The receiver is left unchanged, so a shared `*Regexp` stays
+  concurrency-safe. `(*Regexp).Timeout()` reads the limit back.
+- **`(*Regexp).Encoding() Encoding`** and **`(*Regexp).String() string`** —
+  report the input encoding (Ruby's `Regexp#encoding`) and the source pattern.
+
+### Matching
+
+- **`(*Regexp).Match(s string) *MatchData`** — search for the leftmost match;
+  returns `*MatchData` on success or `nil` on no match (or when the step budget
+  or a configured timeout is exceeded).
+- **`(*Regexp).MatchString(s string) bool`** — report whether `s` matches.
+
+### Reading a result
+
+`MatchData` holds the byte spans of the whole match (group 0) and of each
+capturing group, by **index and by name**. All offsets are **byte offsets** into
+the input, so callers can map them back onto their own string representation.
+
+- `Str(i int) string` / `StrName(name string) string` — captured text by index
+  or by name.
+- `Begin(i int) int` / `End(i int) int` — byte offsets of group `i` (`-1` if the
+  group did not participate).
+- `IndexOfName(name string) int` — the 1-based group index for a named capture
+  (`-1` if no group has that name).
+- `NGroups() int` — the number of capturing groups (not counting group 0).
+- `Pre() string` / `Post() string` — the input before and after the whole match.
 
 ## Example
 
 ```go
-re, err := onigmo.Compile(`(?<year>\d{4})-(?<mon>\d{2})`, onigmo.None)
+re, err := onigmo.Compile(`(?<year>\d{4})-(?<mon>\d{2})`)
 m := re.Match("2026-06")          // *MatchData or nil
-m.Group("year")                   // "2026"
-m.Begin(0); m.End(0)              // byte offsets
-re.Replace(src, `\k<mon>/\k<year>`)
+m.StrName("year")                 // "2026"
+m.Begin(0); m.End(0)              // byte offsets of the whole match
+
+// An explicit encoding and a wall-clock timeout:
+bin, _ := onigmo.CompileEnc(`\xC3\xA9`, onigmo.ASCII8BIT)
+safe := re.WithTimeout(100 * time.Millisecond)
 ```
 
 ## Relationship to Ruby
@@ -44,4 +72,6 @@ A thin adapter in `go-embedded-ruby/ruby/internal/regexp` maps Ruby's `Regexp`
 and `MatchData` objects onto this API. Because `MatchData` already reports byte
 offsets and exposes captures by both index and name, the adapter is a mechanical
 mapping rather than a reimplementation — the engine does the work, the adapter
-just presents it in Ruby's object shapes.
+just presents it in Ruby's object shapes. The replacement DSL (`\1`, `\k<name>`,
+`\&`, block forms) and the rest of the full Ruby `Regexp`/`MatchData` surface
+(Phase 5) live **in that adapter, not in this engine module**.

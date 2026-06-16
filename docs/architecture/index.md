@@ -36,12 +36,12 @@ packages mirroring the pipeline, plus the public API:
 
 | Package | Responsibility |
 | --- | --- |
-| `syntax` | scanner + parser → AST; Onigmo grammar and escapes |
-| `compile` | AST → VM program (instructions + capture/group metadata) |
-| `vm` | backtracking matcher: thread state, backtrack stack, memo, budget |
-| `charset` | character classes, POSIX classes, `\p{…}` Unicode properties |
-| `encoding` | byte/rune handling per encoding (UTF-8, ASCII-8BIT, …) |
-| `regexp.go` | public API: `Compile`, `Match`, `MatchData`, named captures, replace |
+| `internal/syntax` | scanner + parser → AST; Onigmo grammar and escapes |
+| `internal/ast` | the typed AST node set the parser produces and the compiler consumes |
+| `internal/compile` | AST → VM program (instructions + capture/group metadata), and the `Encoding`-keyed cursor (UTF-8 / ASCII-8BIT) |
+| `internal/vm` | backtracking matcher: thread state, backtrack stack, memo, step/recursion budget, wall-clock timeout, and the start-position / interior-literal prefilters |
+| `internal/charset` | `\p{…}` Unicode property classification |
+| `regexp.go` | public API: `Compile` / `CompileEnc`, `Match` / `MatchString`, `WithTimeout`, `Encoding`, and `MatchData` (spans by index and name) |
 
 The detail pages cover the load-bearing pieces:
 [Syntax & parser](syntax.md), the [Backtracking VM](vm.md), and

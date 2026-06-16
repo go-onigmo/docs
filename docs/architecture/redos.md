@@ -29,22 +29,27 @@ cannot be memoized on position alone, because the same `(instruction, position)`
 can succeed or fail depending on what was captured; those regions fall back to
 the budget.
 
-### A deterministic timeout and step budget
+### A deterministic step budget
 
-Independently of memoization, the VM carries a **backtrack-step budget** and a
-**timeout** (the equivalent of Ruby's `Regexp.timeout`). Each unit of
-backtracking work decrements the budget; when the budget or the deadline is
-exhausted, the match is **aborted deterministically** with an error rather than
-returning a wrong answer or running forever. "Deterministic" is the key word:
-the same pattern, input, and budget always abort at the same point, so behaviour
-is reproducible across runs and platforms — not dependent on wall-clock jitter.
+Independently of memoization, the VM carries a **backtrack-step budget**. Each
+unit of backtracking work decrements it; when it is exhausted the match is
+**aborted deterministically** (`Match` returns `nil`) rather than returning a
+wrong answer or running forever. "Deterministic" is the key word: the same
+pattern, input, and budget always abort at the same point, so behaviour is
+reproducible across runs and platforms — not dependent on wall-clock jitter. A
+**recursion-depth cap** bounds subexpression calls (`\g<…>`) the same way, so a
+non-terminating recursive grammar fails locally instead of exhausting the stack.
 
-### Optional static warnings
+### A wall-clock timeout
 
-Some patterns are obviously catastrophic from their structure alone (nested
-unbounded quantifiers over overlapping alternations, for example). The engine can
-optionally flag these at compile time, so a developer is warned before the
-pattern ever sees hostile input.
+`re.WithTimeout(d)` returns a *copy* of the `Regexp` that aborts any single match
+exceeding `d` of real time (Ruby's `Regexp.timeout` equivalent) — the real-time
+backstop to the deterministic step budget, for the residual cases (notably
+backreference-bearing patterns) memoization cannot prune. The receiver is left
+unchanged, so a shared `*Regexp` stays concurrency-safe. The VM polls the
+monotonic clock only once every 4096 steps, so a search with no deadline pays
+nothing. A pathological pattern is bounded by whichever of the budget or the
+deadline it reaches first.
 
 ## Never rely on a host watchdog alone
 
