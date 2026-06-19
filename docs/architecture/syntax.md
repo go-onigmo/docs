@@ -29,7 +29,7 @@ RE2's. The main groups of syntax it must recognize:
 
 ### Groups
 
-- Named capture: `(?<name>…)` (and `(?'name'…)`).
+- Named capture: `(?<name>…)`.
 - Non-capturing: `(?:…)`.
 - Atomic: `(?>…)` — match the subpattern, then discard its internal backtrack
   points.
