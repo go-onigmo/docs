@@ -634,8 +634,13 @@
 <p><code>go-ruby-regexp/regexp</code> is a compiler <strong>and</strong> a virtual machine. A pattern is parsed
 into an abstract syntax tree, the AST is lowered to a bytecode program, and that
 program is executed by a backtracking VM against the input to produce
-<code>MatchData</code>. The model is Onigmo's — a backtracking matcher — not an NFA/DFA
-simulator; see <a href="../why/">Why a backtracking engine</a> for the reasoning.</p>
+<code>MatchData</code>. The model is Onigmo's — a backtracking matcher — see
+<a href="../why/">Why a backtracking engine</a> for the reasoning. The backtracker is the
+<strong>source of truth</strong> for every feature and for submatch extraction; a <strong>lazy-NFA +
+cached-DFA</strong> fast path (RE2-style) is layered over it for the
+capture/backref/lookaround-free <em>is-match</em> subset, where it now runs within
+<strong>~1.6–5× of C Onigmo</strong> and beats it outright on literal/alternation/structured
+scans (see <a href="../#performance">Performance</a>).</p>
 <h2 id="the-pipeline">The pipeline<a class="headerlink" href="#the-pipeline" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pattern (string, encoding, flags)
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   │  scanner / parser  → AST (Onigmo syntax)
@@ -644,8 +649,13 @@ simulator; see <a href="../why/">Why a backtracking engine</a> for the reasoning
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   ▼
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>   │  optimizer         → anchors, first-byte sets, literal prefixes, atomic cuts
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   ▼
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>program  ──►  VM (backtracking, memoized, budgeted)  ──►  MatchData
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>program  ──►  VM (backtracking, memoized, budgeted)        ──►  MatchData
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        └──►  lazy-NFA + cached-DFA fast path (is-match,    ──┘
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>              capture/backref/lookaround-free subset)
 </code></pre></div>
+<p>The two engines agree byte-for-byte: the DFA fast path answers <em>whether</em> a match
+exists (and its bounds) on the matchable subset, while the backtracking VM
+extracts the actual submatches and handles every feature outside that subset.</p>
 <p>Each stage has a single responsibility:</p>
 <ul>
 <li><strong>scanner / parser</strong> turns the pattern text into an AST in Onigmo's grammar.</li>
@@ -681,7 +691,7 @@ packages mirroring the pipeline, plus the public API:</p>
 </tr>
 <tr>
 <td><code>internal/vm</code></td>
-<td>backtracking matcher: thread state, backtrack stack, memo, step/recursion budget, wall-clock timeout, and the start-position / interior-literal prefilters</td>
+<td>backtracking matcher: thread state, backtrack stack, memo, step/recursion budget, wall-clock timeout, the start-position / interior-literal prefilters, and the lazy-NFA + cached-DFA fast path (<code>dfa.go</code> / <code>dfa_run.go</code>) for the matchable is-match subset</td>
 </tr>
 <tr>
 <td><code>internal/charset</code></td>

@@ -313,6 +313,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#repositories" class="md-nav__link">
     <span class="md-ellipsis">
       Repositories
@@ -594,6 +603,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#repositories" class="md-nav__link">
     <span class="md-ellipsis">
       Repositories
@@ -677,6 +695,29 @@ lookbehind</strong>, <code>\G</code>, <strong>recursive subexpression calls <cod
 documented out-of-scope boundaries; Phase 5 (the Ruby surface) is downstream
 in the go-embedded-ruby adapter, not in this engine module.</p>
 </div>
+<h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h2>
+<p>The engine is measured against the bar it reimplements — <strong>C Onigmo</strong> — and
+against Go's stdlib <code>regexp</code> (<strong>RE2</strong>). Honest wins and losses (Apple M4 Max,
+single core; full numbers in
+<a href="https://github.com/go-ruby-regexp/regexp/blob/main/BENCHMARKS.md">BENCHMARKS.md</a>):</p>
+<ul>
+<li><strong>Beats C Onigmo on the headline cases.</strong> Literal scans run <strong>1.7× faster</strong>
+  than C (<code>strings.Index</code> prefilter vs byte-by-byte <code>onig_search</code>); an
+  alternation miss (<code>zoo|quux|kite</code>) <strong>1.2× C and 5.8× RE2</strong>; a structured
+  numeric scan (<code>([0-9]{1,3}\.){3}…</code>) <strong>6.5× C and 33× RE2</strong>; the <code>email</code> scan
+  lands <strong>≈ RE2</strong>.</li>
+<li><strong>ReDoS safety (the headline).</strong> On <code>\A(a|aa)+b</code> the C Onigmo we reimplement
+  <strong>blows up past 70 s</strong>; our <code>(pc, sp)</code> memo holds it to <strong>~2 µs</strong> — we are
+  algorithmically safer than the engine we clone.</li>
+<li><strong>Inner loops narrowed to 1.6–5× of C</strong> (was far worse) after a <strong>lazy-NFA +
+  cached-DFA</strong> search path (an RE2-style on-the-fly simulation with a memoized
+  <code>(frontier, byte-class) → frontier</code> transition table) now serves the
+  capture/backref/lookaround-free subset; the backtracking VM remains the source
+  of truth for the feature-rich patterns and submatch extraction. Multi-byte-heavy
+  UTF-8 input is gated back to the per-step simulation, so it is never slower than
+  the bare NFA. The residual gap is early-hit micro-cases, where C's per-call
+  setup is cheaper than warming the table.</li>
+</ul>
 <h2 id="repositories">Repositories<a class="headerlink" href="#repositories" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -716,8 +757,12 @@ in the go-embedded-ruby adapter, not in this engine module.</p>
 </ul>
 <h2 id="what-it-is-not">What it is not<a class="headerlink" href="#what-it-is-not" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Not</strong> an NFA/DFA or RE2-style engine. It does not guarantee linear time;
-  instead it bounds pathological matching with a budget.</li>
+<li><strong>Not</strong> an RE2 replacement. Its source-of-truth matcher is a backtracking VM,
+  so it does not guarantee linear time; instead it bounds pathological matching
+  with memoization plus a step/time budget. (A lazy-NFA + cached-DFA fast path
+  <em>is</em> layered in for the capture/backref/lookaround-free subset — see
+  <a href="#performance">Performance</a> — but the backtracker remains authoritative for the
+  feature-rich patterns and for submatch extraction.)</li>
 <li><strong>Not</strong> a drop-in for Go's standard <code>regexp</code> syntax — it implements Onigmo
   (Ruby) syntax and semantics.</li>
 <li><strong>Not</strong> dependent on go-embedded-ruby; the dependency runs the other way.</li>

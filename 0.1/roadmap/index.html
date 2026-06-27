@@ -635,7 +635,7 @@ adapter that consumes this engine, not part of this module.</p>
 <tr>
 <td>4</td>
 <td>ReDoS hardening &amp; optimizer</td>
-<td><code>(pc, sp)</code> memoization, a deterministic step budget, a recursion-depth cap, and a wall-clock <code>WithTimeout</code>; a transparent start-position / required-interior-literal prefilter (up to ~210× faster); a benchmark suite.</td>
+<td><code>(pc, sp)</code> memoization, a deterministic step budget, a recursion-depth cap, and a wall-clock <code>WithTimeout</code>; a transparent start-position / required-interior-literal prefilter (up to ~210× faster); a <strong>lazy-NFA + cached-DFA</strong> fast path that beats C Onigmo on literal/alternation/structured scans and pulls the inner loops to <strong>~1.6–5× of C</strong> (<code>email</code> ≈ RE2); a benchmark suite.</td>
 <td><strong>Done</strong></td>
 </tr>
 <tr>
