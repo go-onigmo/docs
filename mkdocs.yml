@@ -49,6 +49,7 @@ nav:
       - ReDoS hardening: architecture/redos.md
   - API: api.md
   - Roadmap (phases): roadmap.md
+  - Performance: performance.md
   - Contributing: contributing.md
 
 markdown_extensions:
