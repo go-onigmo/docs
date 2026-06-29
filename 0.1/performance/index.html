@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://go-ruby-regexp.github.io/docs/0.1/contributing/">
+        <link rel="canonical" href="https://go-ruby-regexp.github.io/docs/0.1/performance/">
       
       
-        <link rel="prev" href="../performance/">
+        <link rel="prev" href="../roadmap/">
       
+      
+        <link rel="next" href="../contributing/">
       
       
       <link rel="icon" href="../assets/logo.svg">
@@ -22,7 +24,7 @@
     
     
       
-        <title>Contributing - go-ruby-regexp docs</title>
+        <title>Performance - go-ruby-regexp docs</title>
       
     
     
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#contributing" class="md-skip">
+        <a href="#performance" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Contributing
+              Performance
             
           </span>
         </div>
@@ -475,26 +477,6 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../performance/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Performance
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -511,7 +493,7 @@
           
   
   <span class="md-ellipsis">
-    Contributing
+    Performance
   </span>
   
 
@@ -522,7 +504,7 @@
         
   
   <span class="md-ellipsis">
-    Contributing
+    Performance
   </span>
   
 
@@ -544,27 +526,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#hard-rules" class="md-nav__link">
+  <a href="#what-is-measured" class="md-nav__link">
     <span class="md-ellipsis">
-      Hard rules
+      What is measured
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
+  <a href="#result-best-of-5-ms" class="md-nav__link">
     <span class="md-ellipsis">
-      Workflow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-things-live" class="md-nav__link">
-    <span class="md-ellipsis">
-      Where things live
+      Result (best of 5, ms)
     </span>
   </a>
   
@@ -574,6 +547,26 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -605,27 +598,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#hard-rules" class="md-nav__link">
+  <a href="#what-is-measured" class="md-nav__link">
     <span class="md-ellipsis">
-      Hard rules
+      What is measured
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
+  <a href="#result-best-of-5-ms" class="md-nav__link">
     <span class="md-ellipsis">
-      Workflow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-things-live" class="md-nav__link">
-    <span class="md-ellipsis">
-      Where things live
+      Result (best of 5, ms)
     </span>
   </a>
   
@@ -646,46 +630,76 @@
                   
 
 
-<h1 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h1>
-<p>Contributions are welcome. <code>go-ruby-regexp/regexp</code> is built to a small set of
-non-negotiable rules — they are what keep the engine pure-Go, correct, and
-Ruby-compatible. Please read these before opening a pull request.</p>
-<h2 id="hard-rules">Hard rules<a class="headerlink" href="#hard-rules" title="Permanent link">&para;</a></h2>
+<h1 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">&para;</a></h1>
+<p><code>go-ruby-regexp/regexp</code> is the pure-Go library that
+<a href="https://github.com/go-embedded-ruby/ruby"><code>rbgo</code></a> binds for Ruby's <code>regexp</code>. This
+page records a <strong>comparative benchmark</strong> of that module against the reference
+Ruby runtimes, part of the ecosystem-wide per-module parity suite.</p>
+<h2 id="what-is-measured">What is measured<a class="headerlink" href="#what-is-measured" title="Permanent link">&para;</a></h2>
+<p>The <strong>same</strong> Ruby script — compile a tokenizer pattern and <code>scan</code> it over a body of source text — is run under every runtime. <code>rbgo</code>'s
+number reflects <strong>this pure-Go library doing the work</strong>; every other column is
+that interpreter's own <code>regexp</code> stdlib. So the comparison is the <strong>Ruby-visible
+operation</strong>, apples-to-apples across interpreters. The script prints a
+deterministic checksum and its output is checked <strong>byte-identical to MRI</strong>
+before timing.</p>
 <ul>
-<li><strong>Build from source — no vendoring.</strong> Everything compiles from source. Do not
-  reach for prebuilt binaries or vendored blobs as a shortcut; being able to
-  compile from source is a guarantee of independence.</li>
-<li><strong>100% test coverage target, enforced in CI.</strong> New code ships with tests, and
-  coverage is a CI gate. Fill the error branches, not just the happy path.</li>
-<li><strong>All GitHub content in English.</strong> Issues, pull requests, commits, comments,
-  and discussions are English-only.</li>
-<li><strong>Differential testing against Onigmo/MRI.</strong> Correctness is defined by
-  reference Ruby. A corpus of <code>(pattern, input)</code> pairs is run through both Ruby
-  and this engine, and the match span, captures, and named groups are compared
-  <strong>exactly</strong> — not approximated from memory. Onigmo's own test corpus is ported
-  as fixtures, and property/fuzz tests check the parser for crashes.</li>
-<li><strong>Pure Go, cgo disabled.</strong> The whole point is a single static binary with no C
-  toolchain. Code must build with <code>CGO_ENABLED=0</code>. If a feature seems to need C,
-  it needs a pure-Go path instead.</li>
-<li><strong>The ReDoS budget always terminates.</strong> Every match must finish within the
-  deterministic timeout/step budget. A change that can make matching run
-  unbounded is a bug, no matter how fast the common case is — see
-  <a href="../architecture/redos/">ReDoS hardening</a>.</li>
+<li><strong>Host:</strong> Apple M4 Max, macOS (darwin/arm64). <strong>Method:</strong> best-of-5 wall time
+  (best, not mean, to suppress scheduler noise); single-shot processes, no
+  warm-up beyond the script's own loop.</li>
+<li><strong>Runtimes:</strong> <code>ruby 4.0.5 +PRISM</code> (MRI, the oracle) and <code>ruby --yjit</code>;
+  <code>jruby 10.1.0.0</code> (OpenJDK 25); <code>truffleruby 34.0.1</code> (GraalVM CE Native).</li>
+<li>The benchmark script and harness live in rbgo's repo under
+  <a href="https://github.com/go-embedded-ruby/ruby/tree/main/bench/modules"><code>bench/modules/</code></a>
+  (<code>regexp.rb</code> + <code>run.sh</code>). Reproduce:
+  <code>RBGO=./rbgo TRUFFLE=truffleruby bash bench/modules/run.sh 5</code>.</li>
 </ul>
-<h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Pick or open an issue describing the change.</li>
-<li>Work test-first: add the differential / unit tests, then make them pass.</li>
-<li>Run the full suite with coverage and confirm the gate is green.</li>
-<li>Open a PR in English, referencing the issue.</li>
-</ol>
-<h2 id="where-things-live">Where things live<a class="headerlink" href="#where-things-live" title="Permanent link">&para;</a></h2>
-<p>The engine — scanner/parser, compiler, backtracking VM, and the public API — is
-in <a href="https://github.com/go-ruby-regexp/regexp"><code>github.com/go-ruby-regexp/regexp</code></a>. This
-documentation site is in
-<a href="https://github.com/go-ruby-regexp/docs"><code>github.com/go-ruby-regexp/docs</code></a>. Start from the
-<a href="../architecture/">Architecture overview</a> and the <a href="../roadmap/">Roadmap</a> to
-find the right place for your change.</p>
+<h2 id="result-best-of-5-ms">Result (best of 5, ms)<a class="headerlink" href="#result-best-of-5-ms" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">time</th>
+<th style="text-align: right;">vs MRI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>rbgo</strong> (go-ruby-regexp)</td>
+<td style="text-align: right;">1530</td>
+<td style="text-align: right;">1.80×</td>
+</tr>
+<tr>
+<td>MRI (ruby 4.0.5)</td>
+<td style="text-align: right;">850</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>MRI + YJIT</td>
+<td style="text-align: right;">850</td>
+<td style="text-align: right;">1.00×</td>
+</tr>
+<tr>
+<td>JRuby 10.1.0.0</td>
+<td style="text-align: right;">1660</td>
+<td style="text-align: right;">1.95×</td>
+</tr>
+<tr>
+<td>TruffleRuby 34.0.1</td>
+<td style="text-align: right;">340</td>
+<td style="text-align: right;">0.40×</td>
+</tr>
+</tbody>
+</table>
+<p>rbgo runs on <strong>go-ruby-regexp</strong> (a pure-Go Onigmo). On this tokenize loop it is ~1.8x MRI's C Onigmo — near parity for a from-scratch pure-Go engine. TruffleRuby's native JIT wins this compute-bound string row (340 ms).</p>
+<div class="admonition note">
+<p class="admonition-title">Honest framing</p>
+<p>JRuby and TruffleRuby are timed <strong>cold, single-shot</strong>, so they carry JVM /
+Graal startup on every run — read them as one-shot <code>ruby file.rb</code> costs, the
+same way <code>rbgo</code> and MRI are measured, not as steady-state JIT numbers. Rows
+that complete in well under ~200 ms carry the most relative noise; treat
+their ratios as order-of-magnitude. These are real measured numbers from the
+2026-06-29 run — nothing is cherry-picked.</p>
+</div>
 
 
 
